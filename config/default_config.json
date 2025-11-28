@@ -1,0 +1,31 @@
+{
+  "title_rules": {
+    "min_length": 30,
+    "max_length": 60,
+    "weight": 15.0
+  },
+  "description_rules": {
+    "min_length": 120,
+    "max_length": 160,
+    "weight": 15.0
+  },
+  "keyword_rules": {
+    "min_density": 0.01,
+    "max_density": 0.025,
+    "max_auto_keywords": 5,
+    "weight": 20.0
+  },
+  "content_rules": {
+    "min_length": 300,
+    "min_h1_count": 1,
+    "max_h1_count": 1,
+    "min_image_alt_ratio": 0.8,
+    "structure_weight": 25.0
+  },
+  "llm_api_key": "",
+  "llm_base_url": "https://newapi.deepwisdom.ai/v1",
+  "llm_model": "gpt-4o",
+  "llm_timeout": 30,
+  "llm_max_retries": 3,
+  "enable_ai_analysis": true
+}

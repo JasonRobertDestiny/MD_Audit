@@ -1,0 +1,14 @@
+pydantic>=2.0.0
+python-frontmatter>=1.0.0
+markdown>=3.4.0
+beautifulsoup4>=4.12.0
+openai>=1.0.0
+pyyaml>=6.0
+rich>=13.0.0
+
+# Web服务依赖（可选，运行web serve时需要）
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+slowapi>=0.1.9
+python-multipart>=0.0.6
+aiofiles>=23.0.0
