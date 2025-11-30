@@ -1,0 +1,369 @@
+{
+  "project": "MD Audit",
+  "version": "1.0",
+  "created": "2025-11-30",
+  "description": "Markdown SEO诊断Agent功能列表",
+  "features": [
+    {
+      "id": "FR-1.1",
+      "category": "data_parsing",
+      "description": "Frontmatter解析 - 支持解析YAML格式的Frontmatter",
+      "steps": [
+        "读取Markdown文件",
+        "解析YAML Frontmatter",
+        "提取title, description, tags, keywords等字段",
+        "容错处理：缺失字段返回空字符串"
+      ],
+      "passes": false
+    },
+    {
+      "id": "FR-1.2",
+      "category": "data_parsing",
+      "description": "Markdown转HTML - 将Markdown正文转换为HTML DOM树",
+      "steps": [
+        "使用markdown库转换",
+        "启用extra, codehilite, tables扩展",
+        "使用BeautifulSoup解析HTML",
+        "保留标题层级、链接、图片等结构"
+      ],
+      "passes": false
+    },
+    {
+      "id": "FR-1.3",
+      "category": "data_parsing",
+      "description": "关键词自动提取 - 当用户未提供关键词时自动提取Top关键词",
+      "steps": [
+        "提取单词、双词组、三词组",
+        "使用Counter统计词频",
+        "过滤低质量关键词（URL、HTML代码、停用词）",
+        "计算关键词密度"
+      ],
+      "passes": false
+    },
+    {
+      "id": "META_01",
+      "category": "meta_check",
+      "description": "Title检查 - 验证Title存在性与长度（30-60字符）",
+      "steps": [
+        "检查Frontmatter中是否存在title字段",
+        "验证title长度是否在30-60字符范围内",
+        "缺失Title返回0分Critical",
+        "过短/过长返回50%得分High警告"
+      ],
+      "passes": false
+    },
+    {
+      "id": "META_02",
+      "category": "meta_check",
+      "description": "Description检查 - 验证Description存在性与长度（120-160字符）",
+      "steps": [
+        "检查Frontmatter中是否存在description字段",
+        "验证description长度是否在120-160字符范围内",
+        "缺失Description返回0分High警告",
+        "过短/过长返回相应百分比得分"
+      ],
+      "passes": false
+    },
+    {
+      "id": "STRUC_01",
+      "category": "structure_check",
+      "description": "H1标签检查 - 验证文档有且仅有一个H1标签",
+      "steps": [
+        "解析HTML DOM树",
+        "统计H1标签数量",
+        "缺失H1返回0分High警告",
+        "多个H1返回50%得分Medium警告"
+      ],
+      "passes": false
+    },
+    {
+      "id": "STRUC_02",
+      "category": "structure_check",
+      "description": "图片Alt属性检查 - 验证图片Alt属性覆盖率",
+      "steps": [
+        "统计所有img标签",
+        "计算有alt属性的图片比例",
+        "覆盖率<50%返回0分High警告",
+        "覆盖率>=80%返回100%得分"
+      ],
+      "passes": false
+    },
+    {
+      "id": "STRUC_03",
+      "category": "structure_check",
+      "description": "链接存在性检查 - 验证内部/外部链接是否存在",
+      "steps": [
+        "统计所有a标签",
+        "区分内部链接和外部链接",
+        "无任何链接返回0分Medium警告",
+        "有链接返回100%得分"
+      ],
+      "passes": false
+    },
+    {
+      "id": "KEY_01",
+      "category": "keyword_check",
+      "description": "关键词密度检查 - 验证关键词密度在1%-2.5%范围内",
+      "steps": [
+        "获取目标关键词",
+        "计算关键词在正文中的出现次数",
+        "计算关键词密度百分比",
+        "密度<1%建议增加，>2.5%警告堆砌"
+      ],
+      "passes": false
+    },
+    {
+      "id": "KEY_02",
+      "category": "keyword_check",
+      "description": "关键词位置检查 - 验证关键词出现在Title/Desc/首段",
+      "steps": [
+        "检查关键词是否在Title中出现",
+        "检查关键词是否在Description中出现",
+        "检查关键词是否在首段（前100词）中出现",
+        "分别计算得分（33%+33%+34%）"
+      ],
+      "passes": false
+    },
+    {
+      "id": "AI_01",
+      "category": "ai_analysis",
+      "description": "内容深度与价值 - LLM评估内容是否提供独特价值",
+      "steps": [
+        "调用OpenAI API",
+        "评估内容深度和独特见解",
+        "评估具体案例或数据支持",
+        "返回0-10分评分"
+      ],
+      "passes": false
+    },
+    {
+      "id": "AI_02",
+      "category": "ai_analysis",
+      "description": "阅读流畅度 - LLM评估段落结构和逻辑连贯性",
+      "steps": [
+        "调用OpenAI API",
+        "评估段落清晰度",
+        "评估句子长度适中性",
+        "评估逻辑连贯性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "FR-3.1",
+      "category": "report_generation",
+      "description": "Markdown格式报告 - 生成结构化的诊断报告",
+      "steps": [
+        "生成报告头部（文件、时间、总分）",
+        "生成评分详情表格",
+        "按严重程度分类问题",
+        "包含AI优化建议"
+      ],
+      "passes": false
+    },
+    {
+      "id": "FR-3.2",
+      "category": "report_generation",
+      "description": "具体可执行建议 - 每个问题包含修复示例",
+      "steps": [
+        "显示当前状态",
+        "提供建议值",
+        "提供代码示例",
+        "说明影响原因"
+      ],
+      "passes": false
+    },
+    {
+      "id": "CLI_01",
+      "category": "cli",
+      "description": "单文件分析 - 使用CLI分析单个Markdown文件",
+      "steps": [
+        "运行 python -m md_audit.main analyze <file>",
+        "可选指定关键词 -k",
+        "可选指定输出文件 -o",
+        "显示诊断报告"
+      ],
+      "passes": false
+    },
+    {
+      "id": "CLI_02",
+      "category": "cli",
+      "description": "批量目录分析 - 分析整个目录的Markdown文件",
+      "steps": [
+        "运行 python -m md_audit.main analyze <dir>/",
+        "并发处理多个文件",
+        "支持 --workers 参数",
+        "生成汇总报告 SUMMARY.md"
+      ],
+      "passes": false
+    },
+    {
+      "id": "CLI_03",
+      "category": "cli",
+      "description": "禁用AI分析 - 支持 --no-ai 参数跳过LLM调用",
+      "steps": [
+        "运行 python -m md_audit.main analyze <file> --no-ai",
+        "只运行规则引擎检查",
+        "跳过AI_01和AI_02评分",
+        "快速返回结果"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WEB_01",
+      "category": "web",
+      "description": "Web服务启动 - 使用CLI启动Web服务",
+      "steps": [
+        "运行 python -m md_audit.main serve",
+        "服务启动在 http://127.0.0.1:8000",
+        "支持 --host 和 --port 参数",
+        "支持 --reload 开发模式"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WEB_02",
+      "category": "web",
+      "description": "REST API - 提供分析接口",
+      "steps": [
+        "访问 /docs 查看API文档",
+        "POST /analyze 提交Markdown内容",
+        "返回JSON格式诊断结果",
+        "支持文件上传"
+      ],
+      "passes": false
+    },
+    {
+      "id": "WEB_03",
+      "category": "web",
+      "description": "前端界面 - React Web UI",
+      "steps": [
+        "访问根路径显示前端界面",
+        "支持输入/粘贴Markdown内容",
+        "显示分析结果和评分",
+        "支持下载报告"
+      ],
+      "passes": false
+    },
+    {
+      "id": "NFR_01",
+      "category": "non_functional",
+      "description": "性能要求 - 单文件分析时间<5秒（不含LLM）",
+      "steps": [
+        "分析1000词文章",
+        "测量不含LLM的分析时间",
+        "确认时间<5秒",
+        "LLM超时设置30秒"
+      ],
+      "passes": false
+    },
+    {
+      "id": "NFR_02",
+      "category": "non_functional",
+      "description": "容错性 - LLM调用失败时降级到规则引擎",
+      "steps": [
+        "模拟API调用失败",
+        "确认系统不崩溃",
+        "确认返回规则引擎结果",
+        "确认错误日志记录"
+      ],
+      "passes": false
+    },
+    {
+      "id": "NFR_03",
+      "category": "non_functional",
+      "description": "配置化规则 - 支持自定义阈值",
+      "steps": [
+        "修改 config/default_config.json",
+        "使用 --config 指定配置文件",
+        "确认规则使用新阈值",
+        "支持环境变量覆盖"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_EEAT",
+      "category": "seo_advanced",
+      "description": "E-E-A-T分析 - 评估内容的专业性、权威性、可信度",
+      "steps": [
+        "检测作者信息和专业背景",
+        "评估内容的专业术语使用",
+        "检测引用和来源",
+        "计算E-E-A-T评分"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_INTENT",
+      "category": "seo_advanced",
+      "description": "搜索意图分析 - 识别用户搜索意图类型",
+      "steps": [
+        "分析内容类型（信息型/交易型/导航型）",
+        "评估内容与意图的匹配度",
+        "提供意图优化建议"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_SCHEMA",
+      "category": "seo_advanced",
+      "description": "Schema结构化数据检测 - 检测和建议Schema标记",
+      "steps": [
+        "检测现有Schema标记",
+        "识别适合的Schema类型",
+        "提供Schema代码建议"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_CWV",
+      "category": "seo_advanced",
+      "description": "Core Web Vitals预估 - 预估页面性能指标",
+      "steps": [
+        "分析图片大小和数量",
+        "分析代码块复杂度",
+        "提供LCP/FID/CLS优化建议"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_LINK",
+      "category": "seo_advanced",
+      "description": "链接深度分析 - 分析内外链接质量",
+      "steps": [
+        "统计内部和外部链接",
+        "检测锚文本质量",
+        "识别断链风险"
+      ],
+      "passes": false
+    },
+    {
+      "id": "SEO_DEPTH",
+      "category": "seo_advanced",
+      "description": "内容深度分析 - 评估内容的深度和覆盖度",
+      "steps": [
+        "分析主题覆盖广度",
+        "评估内容深度层次",
+        "与竞争对手对比（如可用）"
+      ],
+      "passes": false
+    }
+  ],
+  "statistics": {
+    "total": 29,
+    "passed": 0,
+    "failed": 29,
+    "categories": {
+      "data_parsing": 3,
+      "meta_check": 2,
+      "structure_check": 3,
+      "keyword_check": 2,
+      "ai_analysis": 2,
+      "report_generation": 2,
+      "cli": 3,
+      "web": 3,
+      "non_functional": 3,
+      "seo_advanced": 6
+    }
+  },
+  "notes": "只有经过端到端测试验证的功能才能将passes改为true"
+}
