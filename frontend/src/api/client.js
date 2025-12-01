@@ -122,4 +122,21 @@ export async function checkHealth() {
   return axios.get('/api/health')
 }
 
+/**
+ * 导出分析报告为Markdown文件
+ * @param {Object} report - 分析结果对象（SEOReport）
+ * @returns {Promise<Blob>} Markdown文件Blob
+ */
+export async function exportMarkdownReport(report) {
+  return apiClient.post('/analyze/export/markdown', report, {
+    responseType: 'blob',
+    headers: {
+      Accept: 'text/markdown',
+    },
+  })
+}
+
+// 同步方法到默认客户端，便于统一调用
+apiClient.exportMarkdownReport = exportMarkdownReport
+
 export default apiClient

@@ -1,5 +1,11 @@
 # 分析API路由
+import logging
+from pathlib import Path
+from typing import List, Optional
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Request
+from fastapi.responses import Response
+from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from typing import List
@@ -8,6 +14,11 @@ from web.services.file_service import FileService
 from web.services.analyzer_service import AnalyzerService
 from web.services.history_service import HistoryService
 from web.models.responses import AnalyzeResponse, ErrorResponse, BatchAnalyzeResponse, BatchAnalyzeItem
+from md_audit.models.data_models import DiagnosticItem, SeverityLevel, SEOReport
+from md_audit.reporter import MarkdownReporter
+
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/v1", tags=["analyze"])
@@ -25,6 +36,26 @@ def get_analyzer_service():
 
 def get_history_service():
     return HistoryService()
+
+
+class ExportReportRequest(BaseModel):
+    """导出Markdown报告的请求体"""
+
+    file_path: str
+    total_score: float
+    metadata_score: float
+    structure_score: float
+    keyword_score: float
+    ai_score: float
+    intent_score: float = 0
+    content_depth_score: float = 0
+    eeat_score: float = 0
+    ai_search_score: float = 0
+    diagnostics: List[dict] = Field(default_factory=list)
+    ai_analysis: Optional[dict] = None
+    extracted_keywords: List[str] = Field(default_factory=list)
+    user_keywords: List[str] = Field(default_factory=list)
+    relevance_score: float = 0
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
@@ -161,3 +192,70 @@ async def analyze_batch(
         results=results,
         average_score=round(average_score, 1)
     )
+
+
+@router.post("/analyze/export/markdown", response_class=Response)
+async def export_markdown_report(request: ExportReportRequest):
+    """根据已有分析结果导出Markdown报告"""
+    try:
+        # 将诊断列表转换为模型，保持严重程度枚举
+        diagnostics = []
+        for item in request.diagnostics:
+            try:
+                severity = SeverityLevel(item.get("severity", "info"))
+            except ValueError:
+                severity = SeverityLevel.INFO
+
+            diagnostics.append(DiagnosticItem(
+                check_name=item.get("check_name", ""),
+                category=item.get("category", ""),
+                severity=severity,
+                score=item.get("score", 0),
+                message=item.get("message", ""),
+                suggestion=item.get("suggestion", ""),
+                current_value=item.get("current_value"),
+                expected_value=item.get("expected_value")
+            ))
+
+        # 重建 SEOReport 对象
+        report = SEOReport(
+            file_path=request.file_path,
+            total_score=request.total_score,
+            metadata_score=request.metadata_score,
+            structure_score=request.structure_score,
+            keyword_score=request.keyword_score,
+            ai_score=request.ai_score,
+            intent_score=request.intent_score,
+            content_depth_score=request.content_depth_score,
+            eeat_score=request.eeat_score,
+            ai_search_score=request.ai_search_score,
+            relevance_score=request.relevance_score,
+            diagnostics=diagnostics,
+            ai_analysis=request.ai_analysis,
+            extracted_keywords=request.extracted_keywords,
+            user_keywords=request.user_keywords
+        )
+
+        reporter = MarkdownReporter()
+        markdown_content = reporter.generate(report)
+
+        # 生成下载文件名，兼容缺省路径
+        filename = f"{Path(request.file_path).stem or 'report'}_seo_report.md"
+
+        return Response(
+            content=markdown_content,
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        )
+
+    except Exception as exc:  # pragma: no cover - 防御性兜底
+        logger.error("Export markdown failed: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error_code="EXPORT_FAILED",
+                message="导出报告失败",
+                suggestion="请稍后重试",
+                details=str(exc)
+            ).model_dump()
+        )

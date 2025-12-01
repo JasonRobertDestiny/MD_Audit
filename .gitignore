@@ -71,9 +71,13 @@ yarn-error.log*
 *.temp
 .tmp/
 
-# Claude Code
-.claude/
-
 # Project specific
 reports/
 *.report.md
+*_seo_report.md
+blog/
+
+# Session files
+claude-progress.txt
+feature_list.json
+init.sh

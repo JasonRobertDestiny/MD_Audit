@@ -65,10 +65,44 @@
 
         <!-- 分项得分 -->
         <div class="flex-1 w-full">
-          <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span :class="['badge', scoreBadgeClass]">{{ scoreLabel }}</span>
-            SEO 质量评估
-          </h2>
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <span :class="['badge', scoreBadgeClass]">{{ scoreLabel }}</span>
+              SEO 质量评估
+            </h2>
+
+            <!-- 下载报告按钮 -->
+            <button
+              @click="downloadReport"
+              :disabled="isDownloading"
+              class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                v-if="!isDownloading"
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <svg
+                v-else
+                class="w-5 h-5 mr-2 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              {{ isDownloading ? '生成中...' : '下载报告' }}
+            </button>
+          </div>
 
           <div class="space-y-3">
             <ScoreBar label="元数据" :score="report.metadata_score" :max="15" color="blue" />
@@ -296,6 +330,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import DiagnosticItem from './DiagnosticItem.vue'
 import ScoreBar from './ScoreBar.vue'
 import { getScoreGrade } from '../utils/format'
+import apiClient from '../api/client'
 
 const props = defineProps({
   report: {
@@ -311,6 +346,7 @@ const circumference = 2 * Math.PI * 70 // 约439.8
 const showCelebration = ref(false)
 const displayScore = ref(0)
 const animatedOffset = ref(circumference)
+const isDownloading = ref(false)
 
 // 是否是优秀分数
 const isExcellent = computed(() => props.report.total_score >= 85)
@@ -432,6 +468,38 @@ const getAIScoreColor = (score) => {
   if (score >= 60) return 'text-blue-600'
   if (score >= 40) return 'text-amber-600'
   return 'text-red-600'
+}
+
+// 下载Markdown报告
+const downloadReport = async () => {
+  if (isDownloading.value) return
+
+  isDownloading.value = true
+  try {
+    // 调用后端导出接口获取Markdown内容
+    const blob = await apiClient.exportMarkdownReport(props.report)
+
+    // 构造下载链接，兼容不同路径分隔符
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const fileName = props.report.file_path
+      ? props.report.file_path.split(/[\\/]/).pop().replace('.md', '') + '_seo_report.md'
+      : 'seo_report.md'
+
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理临时节点与对象URL
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('下载报告失败:', error)
+    alert('下载报告失败，请重试')
+  } finally {
+    isDownloading.value = false
+  }
 }
 </script>
 
