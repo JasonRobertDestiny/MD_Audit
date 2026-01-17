@@ -10,11 +10,10 @@ class FileService:
 
     ALLOWED_EXTENSIONS = {".md", ".txt", ".markdown"}
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-    MALICIOUS_PATTERNS = [
-        r"<script[^>]*>",  # JavaScript脚本
-        r"javascript:",  # JavaScript协议
-        r"on(click|error|load|mouseover|submit|focus|blur)\s*=",  # 危险事件处理器（排除style=等）
-    ]
+    # 注意：不再检测恶意代码，因为Markdown技术文档经常包含代码示例
+    # 例如JavaScript教程会有<script>标签、onclick事件等
+    # 这些在代码块中是合法内容，不应被拦截
+    MALICIOUS_PATTERNS = []  # 禁用恶意代码检测
 
     def __init__(self, temp_dir: Path = None):
         self.temp_dir = temp_dir or Path("/tmp/md_audit_uploads")
